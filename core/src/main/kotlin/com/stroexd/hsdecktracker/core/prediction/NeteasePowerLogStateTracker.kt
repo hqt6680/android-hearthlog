@@ -90,6 +90,8 @@ class NeteasePowerLogStateTracker {
 
     private var currentEntity: PowerEntity? = null
     private var currentParsingChoice: MutableChoice? = null
+    private var pendingResetPlayerTags: MutableList<Pair<String, String>>? = null
+    private var inGameReset: Boolean = false
     private var gameEntityId: Int? = null
     private var nextZoneSequence: Long = 0L
     private var graveyardEnterIndex: Int = 0
@@ -109,6 +111,8 @@ class NeteasePowerLogStateTracker {
         activeChoices.clear()
         currentEntity = null
         currentParsingChoice = null
+        pendingResetPlayerTags = null
+        inGameReset = false
         gameEntityId = null
         nextZoneSequence = 0L
         graveyardEnterIndex = 0
@@ -116,6 +120,29 @@ class NeteasePowerLogStateTracker {
         gameType = null
         formatType = null
         scenarioId = null
+    }
+
+    private fun resetForRewind() {
+        val preservedIds = buildSet {
+            gameEntityId?.let(::add)
+            addAll(playerIdToEntityId.values)
+        }
+        entities.keys.retainAll(preservedIds)
+        for (entityId in playerIdToEntityId.values) {
+            val playerEntity = entities[entityId] ?: continue
+            val kept = linkedMapOf<String, JsonPrimitive>()
+            for (key in listOf("ENTITY_ID", "CARDTYPE", "PLAYER_ID", "_GAME_ACCOUNT_ID_HI", "_GAME_ACCOUNT_ID_LO")) {
+                playerEntity.tags[key]?.let { kept[key] = it }
+            }
+            playerEntity.tags.clear()
+            playerEntity.tags.putAll(kept)
+            playerEntity.zoneEntrySequence = 0L
+        }
+        activeChoices.clear()
+        currentEntity = null
+        currentParsingChoice = null
+        pendingResetPlayerTags = null
+        inGameReset = true
     }
 
     fun processLine(rawLine: String) {
@@ -196,18 +223,44 @@ class NeteasePowerLogStateTracker {
 
     private fun handlePowerLine(rest: String) {
         val body = rest.trimStart()
-        if (body == "CREATE_GAME" || body == "RESET_GAME") {
+        if (body == "CREATE_GAME") {
             reset()
             return
         }
+        if (body == "RESET_GAME") {
+            if (gameEntityId != null) resetForRewind() else reset()
+            return
+        }
         if (body.startsWith("tag=")) {
-            val entity = currentEntity ?: return
             val match = INLINE_TAG_REGEX.find(body) ?: return
-            applyTag(entity, match.groupValues[1], match.groupValues[2])
+            val tagName = match.groupValues[1]
+            val tagValue = match.groupValues[2]
+            val entity = currentEntity
+            if (entity != null) {
+                applyTag(entity, tagName, tagValue)
+                return
+            }
+            val pending = pendingResetPlayerTags ?: return
+            val resolvedId = when (tagName.trim()) {
+                "ENTITY_ID" -> tagValue.trim().toIntOrNull()
+                "PLAYER_ID" -> tagValue.trim().toIntOrNull()?.let(playerIdToEntityId::get)
+                else -> null
+            }
+            if (resolvedId != null) {
+                val resolved = getOrCreateEntity(resolvedId)
+                currentEntity = resolved
+                pendingResetPlayerTags = null
+                for ((k, v) in pending) applyTag(resolved, k, v)
+                applyTag(resolved, tagName, tagValue)
+            } else {
+                pending += tagName to tagValue
+            }
             return
         }
         if (body == "BLOCK_END" || body.startsWith("META_DATA")) {
             currentEntity = null
+            pendingResetPlayerTags = null
+            if (body == "BLOCK_END") inGameReset = false
             return
         }
         val blockStart = ACTION_BLOCK_START_REGEX.find(body)
@@ -278,7 +331,14 @@ class NeteasePowerLogStateTracker {
             ?: SHOW_ENTITY_REGEX.find(body)
             ?: CHANGE_ENTITY_REGEX.find(body)
         if (updateMatch != null) {
-            val entityId = parseEntityId(updateMatch.groupValues[1]) ?: return
+            val entityId = parseEntityId(updateMatch.groupValues[1])
+            if (entityId == null) {
+                if (inGameReset && body.startsWith("FULL_ENTITY - Updating ")) {
+                    pendingResetPlayerTags = mutableListOf()
+                }
+                return
+            }
+            pendingResetPlayerTags = null
             val entity = getOrCreateEntity(entityId)
             val newCardId = updateMatch.groupValues[2].trim()
             if (newCardId.isNotEmpty()) {

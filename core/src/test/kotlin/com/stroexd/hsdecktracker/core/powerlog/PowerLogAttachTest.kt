@@ -59,6 +59,20 @@ class PowerLogAttachTest {
         assertEquals(log.size.toLong(), offset)
     }
 
+    @Test
+    fun treatsResetGameAsInMatchEventAndAttachesAtCreateGame() {
+        val log = (
+            "D 15:21:22.5992740 GameState.DebugPrintPower() - CREATE_GAME\n" +
+                "D 15:22:00.0000000 GameState.DebugPrintPower() - BLOCK_START BlockType=GAME_RESET Entity=[entityName=Rewind id=132 zone=PLAY zonePos=0 cardId=TIME_014 player=2]\n" +
+                "D 15:22:00.0000000 GameState.DebugPrintPower() -     RESET_GAME\n" +
+                "D 15:22:00.0000000 GameState.DebugPrintPower() - BLOCK_END\n" +
+                "D 15:22:05.0000000 GameState.DebugPrintPower() - TAG_CHANGE Entity=GameEntity tag=TURN value=11\n"
+            ).toByteArray(Charsets.UTF_8)
+
+        val offset = resolvePowerLogAttachOffset(ByteArrayChannel(log), log.size.toLong(), blockSize = 64)
+        assertEquals(0L, offset)
+    }
+
     private class ByteArrayChannel(private val data: ByteArray) : SeekableByteChannel {
         private var pos = 0L
         private var open = true

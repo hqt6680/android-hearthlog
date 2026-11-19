@@ -21,6 +21,7 @@
     <string name="cloud_keep_all_action">Keep every card</string>
     <string name="cloud_no_decision">No supported constructed decision was found, or the deck format does not match.</string>
     <string name="cloud_log_large">This match log is too large to predict.</string>
+    <string name="cloud_log_truncated">Power.log reached Hearthstone\'s 10MB limit and stopped updating. Restart Hearthstone to resume.</string>
     <string name="cloud_turn_options">Log turn %1$d · packet %2$d</string>
     <string name="cloud_win_rate">Win rate %1$s</string>
     <string name="cloud_no_recommendation">No recommendation for this position</string>

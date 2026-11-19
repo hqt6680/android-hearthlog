@@ -21,6 +21,7 @@
     <string name="cloud_keep_all_action">保留全部起手牌</string>
     <string name="cloud_no_decision">日志中没有可用的构筑决策，或所选套牌赛制不符</string>
     <string name="cloud_log_large">本局日志过大，无法预测</string>
+    <string name="cloud_log_truncated">Power.log 已达炉石 10MB 上限并停止写入，请重启炉石传说以恢复追踪</string>
     <string name="cloud_turn_options">日志回合 %1$d · 选项包 %2$d</string>
     <string name="cloud_win_rate">胜率 %1$s</string>
     <string name="cloud_no_recommendation">当前局面暂无推荐</string>

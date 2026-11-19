@@ -109,9 +109,12 @@ internal fun PowerLogAdvicePanel(match: PowerLogSnapshot, db: CardDatabase, sess
                     } else {
                         item {
                             if (cloudDecision != null) CloudPredictionResult(cloudDecision, db, match = match, showWinRate = false)
-                            else if (match.result == null) LogNote(stringResource(
-                                if (container.cloudPrediction.canPredict)
-                                    R.string.cloud_waiting_decision else R.string.device_prediction_unavailable,
+                            else if (match.result == null && !match.gameComplete) LogNote(stringResource(
+                                when {
+                                    session.logTruncated -> R.string.cloud_log_truncated
+                                    container.cloudPrediction.canPredict -> R.string.cloud_waiting_decision
+                                    else -> R.string.device_prediction_unavailable
+                                },
                             ))
                         }
                         if (choice != null) {

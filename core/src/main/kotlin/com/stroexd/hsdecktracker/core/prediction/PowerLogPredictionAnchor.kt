@@ -14,7 +14,7 @@ data class PowerLogPredictionAnchor(val kind: PowerLogPredictionKind, val rawTur
 
 /** Identifies the pending decision or the current opponent position in a complete log prefix. */
 fun PowerLogSnapshot.activePredictionAnchor(logLineCount: Int): PowerLogPredictionAnchor? {
-    if (result != null) return null
+    if (result != null || gameComplete) return null
     openingChoice?.let { opening ->
         return if (turn >= 0 && opening.choiceId > 0 && (opening.playerId ?: 0) in 1..2 &&
             (opening.sourceEntityId ?: 0) > 0 && opening.cards.size in 3..4 &&

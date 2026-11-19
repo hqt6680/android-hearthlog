@@ -36,6 +36,36 @@ class PredictStateLogReaderTest {
     }
 
     @Test
+    fun continuesReadingDecisionsAfterRewindResetGame() {
+        val rewind = listOf(
+            "BLOCK_START BlockType=GAME_RESET Entity=[entityName=Rewind id=99 zone=PLAY zonePos=0 cardId=TIME_014 player=2] EffectCardId=System.Collections.Generic.List`1[System.String] EffectIndex=-1 Target=0 SubOption=-1",
+            "    RESET_GAME",
+            "    FULL_ENTITY - Updating PlayerOne CardID=",
+            "        tag=CONTROLLER value=1",
+            "        tag=CARDTYPE value=PLAYER",
+            "        tag=PLAYER_ID value=1",
+            "        tag=HERO_ENTITY value=10",
+            "        tag=ENTITY_ID value=2",
+            "        tag=CURRENT_PLAYER value=1",
+            "    FULL_ENTITY - Updating [entityName=HeroOne id=10 zone=PLAY zonePos=0 cardId=HERO_02 player=1] CardID=HERO_02",
+            "        tag=ZONE value=PLAY",
+            "        tag=CONTROLLER value=1",
+            "        tag=CARDTYPE value=HERO",
+            "        tag=HEALTH value=30",
+            "    FULL_ENTITY - Updating [entityName=HeroTwo id=20 zone=PLAY zonePos=0 cardId=HERO_01 player=2] CardID=HERO_01",
+            "        tag=ZONE value=PLAY",
+            "        tag=CONTROLLER value=2",
+            "        tag=CARDTYPE value=HERO",
+            "        tag=HEALTH value=30",
+            "BLOCK_END",
+        ).joinToString("") { logLine("DebugPrintPower", it) }
+        val log = opening + firstDecision + rewind + laterDecision
+        val afterRewind = assertNotNull(PredictStateLogReader.read(log.reader()))
+        assertEquals(53, afterRewind.optionsId)
+        assertEquals(1, afterRewind.localPlayerId)
+    }
+
+    @Test
     fun flagsAnUnsubmittedPacketAsAnObservedPrefix() {
         val pending = firstDecision.lineSequence().filterNot { "GameState.SendOption" in it }.joinToString("\n")
         val preview = assertNotNull(PredictStateLogReader.read((opening + pending).reader()))

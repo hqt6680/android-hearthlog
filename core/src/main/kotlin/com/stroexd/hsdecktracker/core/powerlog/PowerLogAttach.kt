@@ -75,7 +75,6 @@ private fun classifyAttachLine(line: String): AttachLineKind {
     if (index < 0) return AttachLineKind.NONE
     val message = line.substring(index + GAME_STATE_POWER_PREFIX.length).trim()
     if (message == "CREATE_GAME") return AttachLineKind.MATCH_START
-    if (message == "RESET_GAME") return AttachLineKind.MATCH_END
     if (message.startsWith("TAG_CHANGE ")) {
         val isCompleteState = message.contains("Entity=GameEntity ") &&
             (message.contains("tag=STATE value=COMPLETE") || message.contains("tag=19 value=3"))

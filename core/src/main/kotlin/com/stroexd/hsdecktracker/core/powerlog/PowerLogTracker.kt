@@ -171,6 +171,7 @@ data class PowerLogSnapshot(
     val publicPlays: List<PowerLogPublicPlay> = emptyList(),
     val deckEvents: List<PowerLogDeckEvent> = emptyList(),
     val startingDeck: PowerLogStartingDeck? = null,
+    val gameComplete: Boolean = false,
 )
 
 /** Reduces the game's Power.log stream. Feed complete lines in order from one session. */
@@ -206,10 +207,20 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
         val stream = match.groupValues[1]
         val message = match.groupValues[2].trim()
         if (stream == "DebugPrintPower" && message in START_OR_RESET) {
-            game = if (message == "CREATE_GAME") Game(++sequence, nextFriendlyPlayerId, captureCombatTags) else null
-            nextFriendlyPlayerId = null
-            snapshot = null
-            return null
+            if (message == "CREATE_GAME") {
+                game = Game(++sequence, nextFriendlyPlayerId, captureCombatTags)
+                nextFriendlyPlayerId = null
+                snapshot = null
+                return null
+            }
+            val active = game
+            if (active == null) {
+                nextFriendlyPlayerId = null
+                snapshot = null
+                return null
+            }
+            active.onResetGame()
+            return publish()
         }
         val current = game ?: return null
         when (stream) {
@@ -265,6 +276,25 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
         private var generalChoice: GeneralChoice? = null
         private var incomingGeneralChoice: GeneralChoice? = null
         private var choiceRevision = 0L
+        private var inGameReset = false
+        private var gameResetBlockDepth: Int? = null
+        private var pendingResetEntityTags: MutableList<Pair<String, String>>? = null
+        private var gameComplete = false
+
+        fun onResetGame() {
+            inGameReset = true
+            gameResetBlockDepth = blockPlays.size.takeIf { it > 0 }
+            pendingResetEntityTags = null
+            invalidateOptions()
+            clearGeneralChoice()
+            currentEntity = null
+            openingShowCardId = null
+            currentChoiceId = null
+            sentChoiceId = null
+            for (entity in entities.values) {
+                if (entity.id != gameEntity) entity.resetForRewind()
+            }
+        }
 
         fun onMetadata(message: String) {
             PLAYER_META.matchEntire(message)?.let { match ->
@@ -288,10 +318,32 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
             invalidateOptions()
             if (message.startsWith("tag=")) {
                 val tag = TAG_VALUE.matchEntire(message) ?: return
-                currentEntity?.let { applyTag(it, tag.groupValues[1], tag.groupValues[2]) }
+                val activeEntity = currentEntity
+                if (activeEntity != null) {
+                    applyTag(activeEntity, tag.groupValues[1], tag.groupValues[2])
+                    return
+                }
+                val pending = pendingResetEntityTags ?: return
+                val tagName = tag.groupValues[1]
+                val tagValue = tag.groupValues[2]
+                val resolvedId = when (tagName) {
+                    "ENTITY_ID" -> tagValue.toIntOrNull()
+                    "PLAYER_ID" -> tagValue.toIntOrNull()?.let(playerEntities::get)
+                    else -> null
+                }
+                val resolved = resolvedId?.let(::entity)
+                if (resolved != null) {
+                    currentEntity = resolved
+                    pendingResetEntityTags = null
+                    for ((k, v) in pending) applyTag(resolved, k, v)
+                    applyTag(resolved, tagName, tagValue)
+                } else {
+                    pending += tagName to tagValue
+                }
                 return
             }
             currentEntity = null
+            pendingResetEntityTags = null
             openingShowCardId = null
             when {
                 message.startsWith("GameEntity ") -> {
@@ -349,6 +401,11 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
                 }
                 message == "BLOCK_END" -> {
                     if (openingDealDepth == blockPlays.size) openingDealDepth = null
+                    if (gameResetBlockDepth == blockPlays.size) {
+                        inGameReset = false
+                        gameResetBlockDepth = null
+                        pendingResetEntityTags = null
+                    }
                     // Wait for the play to finish before exposing its identity. A hidden spell can
                     // pass through PLAY before moving to SECRET.
                     val play = blockPlays.removeLastOrNull() ?: return
@@ -411,7 +468,13 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
                 reference.substringAfterLast('=').toIntOrNull()
             } else {
                 entityId(reference.substringAfter("Updating ").removePrefix("Entity="))
-            } ?: return
+            }
+            if (id == null) {
+                if (inGameReset && !creating && message.startsWith("FULL_ENTITY - Updating ")) {
+                    pendingResetEntityTags = mutableListOf()
+                }
+                return
+            }
             val target = entity(id) ?: return
             currentEntity = target
             if (creating) {
@@ -607,6 +670,9 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
                     "LOST", "5" -> MatchResult.LOSS
                     "TIED", "6" -> MatchResult.DRAW
                     else -> target.result
+                }
+                "STATE" -> if (target.id == gameEntity && (value == "COMPLETE" || value == "3")) {
+                    gameComplete = true
                 }
                 "QUEST", "SIDEQUEST", "QUESTLINE" -> if (value == "1") target.quest = true
             }
@@ -967,6 +1033,7 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
                         PowerLogStartingDeck(cards.size, cards.mapNotNull { it.originalDeckCardId })
                     }
                 },
+                gameComplete = gameComplete || result != null,
             )
         }
 
@@ -1209,6 +1276,50 @@ class PowerLogTracker(private val captureCombatTags: Boolean = false) {
         var openingRevealCardId: String? = null
 
         fun hasCoinIdentity(): Boolean = hasCoinTag || cardId in KNOWN_COIN_IDS
+
+        fun resetForRewind() {
+            observedTags = null
+            cardId = null
+            zone = null
+            if (kind != "PLAYER") kind = null
+            position = null
+            attack = null
+            cost = null
+            health = null
+            damage = 0
+            armor = 0
+            heroEntity = null
+            weaponEntity = null
+            durability = null
+            currentPlayer = null
+            mulliganDone = null
+            resources = null
+            resourcesUsed = 0
+            tempResources = 0
+            exhausted = null
+            frozen = false
+            cantAttack = false
+            attackBlocks.clear()
+            windfury = false
+            megaWindfury = false
+            charge = false
+            cantBeSummoningSick = false
+            rush = false
+            cantAttackHero = false
+            attacksUsed = null
+            extraAttacks = 0
+            turnsInPlay = null
+            enteredPlayTurn = null
+            taunt = false
+            result = null
+            quest = false
+            identityPublic = false
+            publicSecretCardId = null
+            freshReveal = false
+            battlefieldCardId = null
+            publicHandCardId = null
+            hasCoinTag = false
+        }
 
         fun toCard(budget: AttackBudget? = null, includeBoardStats: Boolean = false, playOptionReported: Boolean? = null): PowerLogCard? =
             cardId?.let {

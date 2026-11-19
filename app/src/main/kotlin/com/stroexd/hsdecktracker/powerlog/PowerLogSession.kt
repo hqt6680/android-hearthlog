@@ -32,6 +32,7 @@ internal data class PowerLogSessionState(
     val selectedDeck: Deck? = null,
     val revision: Long = 0,
     val cloudDecision: PredictionKey? = null,
+    val logTruncated: Boolean = false,
 )
 
 internal fun PowerLogSnapshot.localHeroClass(): HsClass? =
@@ -70,6 +71,7 @@ internal class PowerLogSession(
     private var offeredDecision: PredictionKey? = null
     private var submittedDecision: PredictionKey? = null
     private var submittedDeck: Deck? = null
+    private var logTruncated = false
 
     @Synchronized
     fun start() {
@@ -98,6 +100,7 @@ internal class PowerLogSession(
         }
         for (line in input.lines) {
             if (isPowerLogMatchStart(line)) matchQueuedDeck(gameLogTimeOfDayMillis(line))
+            if (line.contains(TRUNCATED_LOG_MARKER)) logTruncated = true
             appendForPrediction(line)
             val match = tracker.accept(line) ?: continue
             if (trackedGame != match.gameNumber) {
@@ -161,7 +164,7 @@ internal class PowerLogSession(
             selectedDeck = defaultDeck(match)
         }
         publishPrediction(match)
-        sessionState.value = PowerLogSessionState(true, match, selectedDeck, revision, offeredDecision)
+        sessionState.value = PowerLogSessionState(true, match, selectedDeck, revision, offeredDecision, logTruncated)
     }
 
     private fun clearMatch() {
@@ -170,6 +173,7 @@ internal class PowerLogSession(
         activeQueuedDeck = null
         selectedDeck = null
         manualDeckChoice = false
+        logTruncated = false
         clearPrediction()
         revision++
     }
@@ -334,6 +338,7 @@ internal class PowerLogSession(
         val COMPLETE_DECK_SIZES = setOf(20, 30, 40)
         const val MAX_QUEUE_WAIT_MILLIS = 10 * 60 * 1_000L
         const val MILLIS_PER_DAY = 24 * 60 * 60 * 1_000L
+        const val TRUNCATED_LOG_MARKER = "Truncating log, which has reached the size limit"
     }
 
 }
