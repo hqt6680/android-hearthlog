@@ -1,4 +1,4 @@
-# HearthLog
+# 炉石安卓AI记牌器
 
 [English](README.md) · **简体中文**
 
@@ -7,15 +7,15 @@
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-一个给《炉石传说》安卓端用的开源记牌器。纯 Kotlin + Jetpack Compose 写出来的，Release 包只有 2.5 MB 左右。
+一个给《炉石传说》安卓端用的开源 AI 记牌器（原名 HearthLog），纯 Kotlin + Jetpack Compose 写出来的，Release 包只有 2.5 MB 左右。
 
-我不喜欢那种靠录屏 + OCR 识别卡牌的做法，既费电又容易认错，所以 HearthLog 走的是**读炉石原生日志**的路线——通过用户自己授权的 [Shizuku](https://shizuku.rikka.app/zh-hans/guide/setup/) 直接读取 `Power.log` 和 `Decks.log`，在同一台手机或平板上做记牌、算场攻、看环境，顺便把构筑预测和起手留牌率也接进了纯 Kotlin 模块里，不需要额外塞闭源 DLL 或外部桥接程序。
+我不喜欢那种靠录屏 + OCR 识别卡牌的做法，既费电又容易认错，所以本项目走的是**读炉石原生日志**的路线——通过用户自己授权的 [Shizuku](https://shizuku.rikka.app/zh-hans/guide/setup/) 直接读取 `Power.log` 和 `Decks.log`，在同一台手机或平板上做记牌、算场攻、看环境，并且**直接接入了网易炉石盒子的 AI 预测接口与国服环境数据**，在纯 Kotlin 模块里就能跑局内起手换牌、发现、出牌建议和胜率预测，不需要额外塞闭源 DLL 或外部桥接程序。
 
 ---
 
 ## 能做什么
 
-- **左右双悬浮窗记牌**：平时可以折叠成小气泡贴边放着，打牌时展开——左边看起手换牌、发现建议、胜率估算和双方坟场，右边看自己剩什么牌、对手手牌是哪回合摸的/哪张牌衍生的、奥秘排除以及双方场攻和血甲。
+- **左右双悬浮窗记牌 + 网易盒子 AI**：平时可以折叠成小气泡贴边放着，打牌时展开——左边看接入网易炉石盒子 AI 算出的起手换牌、发现建议、胜率估算和双方坟场，右边看自己剩什么牌、对手手牌是哪回合摸的/哪张牌衍生的、奥秘排除以及双方场攻和血甲。
 - **自动同步卡组**：炉石选卡组准备开打时，从 `Decks.log` 自动识别并同步卡组；也支持套牌代码导入导出（奇利亚斯、牛头人酋长副牌库都能正常解析）、费用曲线和缺卡合尘计算。
 - **环境与卡组查询**：可以看国服标准/狂野构筑环境，也能查 HSReplay 的卡组和胜率数据。
 - **日志回放与排错**：支持把保存下来的 `Power.log` 丢进「回放构筑日志」，指定回合和选项包 ID 复现当时的局面和建议，排查问题很方便。

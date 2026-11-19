@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">HearthLog</string>
+    <string name="app_name">Hearthstone Android AI Deck Tracker</string>
     <string name="constructed_tracking_hint">Share Hearthstone, then enter Standard or Wild from the Play screen so the tracker can confirm the mode.</string>
     <string name="waiting_for_constructed_match">Waiting for Standard or Wild. Start the match from the deck selection screen.</string>
     <string name="save_constructed_results">Automatically save recognized match results</string>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">炉石安卓AI记牌器</string>
     <string name="constructed_tracking_hint">授权共享炉石窗口后，从对战的套牌选择页进入标准或狂野。识别到模式才会开始记牌。</string>
     <string name="waiting_for_constructed_match">等待识别标准或狂野。请从套牌选择页开始对局。</string>
     <string name="save_constructed_results">自动保存已识别的对局结果</string>

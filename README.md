@@ -1,4 +1,4 @@
-# HearthLog
+# 炉石安卓AI记牌器 (Hearthstone Android AI Deck Tracker)
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -7,15 +7,15 @@
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-**HearthLog** is an open-source *Hearthstone* deck tracker and match assistant for Android, written in Kotlin with Jetpack Compose. The release APK is around 2.5 MB.
+An open-source *Hearthstone* AI deck tracker and match assistant for Android (formerly HearthLog), written in Kotlin with Jetpack Compose. The release APK is around 2.5 MB.
 
-Instead of burning battery on screen capture and OCR, HearthLog reads Hearthstone's own `Power.log` and `Decks.log` on-device via [Shizuku](https://shizuku.rikka.app/). Everything from entity tracking and secret elimination to constructed decision analysis runs directly in pure Kotlin—no native `.NET` bridges or companion PC apps needed.
+Instead of burning battery on screen capture and OCR, it reads Hearthstone's own `Power.log` and `Decks.log` on-device via [Shizuku](https://shizuku.rikka.app/). It integrates **NetEase Hearthstone Box's AI prediction and China-server meta endpoints** directly in pure Kotlin (`:core`) for live mulligan, discover, action recommendations, opening keep rates, and win-rate estimates—no native `.NET` bridges or companion PC apps needed.
 
 ---
 
 ## What It Does
 
-- **Split Floating Overlays**: Two draggable edge-snapping panels that collapse into small bubbles when you don't need them. The left panel shows mulligan/discover/play advice, win-rate estimates, and graveyards; the right panel tracks your remaining deck, opponent hand turns & card origins, secret candidates, and board/hero combat totals.
+- **Split Floating Overlays & NetEase Box AI**: Two draggable edge-snapping panels that collapse into small bubbles when you don't need them. The left panel shows mulligan/discover/play advice and win-rate estimates powered by NetEase Hearthstone Box's AI alongside graveyards; the right panel tracks your remaining deck, opponent hand turns & card origins, secret candidates, and board/hero combat totals.
 - **Deck Sync & Management**: Picks up your queued deck automatically from `Decks.log`, supports deck codes (including E.T.C. and Zilliax sideboards), mana curves, and crafting dust costs.
 - **Meta Browser**: Browse Standard and Wild meta snapshots from both the China server and HSReplay.
 - **Offline Log Replay**: Drop in a saved `Power.log`, pick a turn and options packet ID, and step through how the tracker reconstructed the board and predictions.
