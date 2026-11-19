@@ -1,34 +1,24 @@
 # Contributing to HearthLog
 
-Thank you for your interest in contributing to **HearthLog**!
+Pull requests and bug reports are welcome!
 
-## Development Environment
+## Dev Setup
 
 - **JDK**: 17 or 21
-- **Android SDK**: Compile SDK 35, Build-Tools 35.0.0, Min SDK 26
-- **Build System**: Gradle 8.11.1 (`./gradlew`)
+- **Android SDK**: Compile/Target SDK 35, Min SDK 26
+- **Gradle**: 8.11.1 (`./gradlew`)
 
-## Module Guidelines
+## Code Conventions
 
-1. **Keep `:core` Pure JVM**:
-   - All `Power.log` / `Decks.log` parsers, entity state reducers, secret candidate solvers, deck code codecs, and prediction protocol logic belong in `:core` with zero `android.*` dependencies.
-   - Every parser change, bug fix, or protocol adjustment in `:core` should include deterministic unit tests under `core/src/test/kotlin/` (using `MockWebServer` for HTTP transport tests).
-2. **Android UI & Services in `:app`**:
-   - Jetpack Compose screens, floating `WindowManager` overlays, and Shizuku `UserService` IPC live in `:app`.
-   - Keep user-facing strings localized in both `app/src/main/res/values/*.xml` and `app/src/main/res/values-zh-rCN/*.xml`.
-3. **Privacy & Sanitization**:
-   - Never commit real player `BattleTag` identifiers, session cookies, tokens, or personal `Power.log` captures into test fixtures or source files. Use synthetic identifiers (e.g., `LocalPlayer#1234`) in all unit tests.
+- **Keep `:core` Pure JVM**: Put log parsing, game-state reduction, secret filtering, deck codes, and prediction logic in `:core` without any `android.*` imports. When fixing a parser bug or adding support for a new Hearthstone mechanic (like Rewind `RESET_GAME`), add a unit test under `core/src/test/kotlin/`.
+- **Keep Android UI & Shizuku IPC in `:app`**: UI screens, `WindowManager` overlays, and `PowerLogReaderService` live in `:app`. Please add both English (`values/*.xml`) and Simplified Chinese (`values-zh-rCN/*.xml`) strings for any new UI text.
+- **No Real Logs or Account Data in Git**: Never commit personal `Power.log` captures, real `BattleTag`s, cookies, or tokens. Use synthetic names like `PlayerOne#1001` in test fixtures.
 
-## Running Checks Before Submitting a PR
+## Before Opening a PR
 
 ```bash
-# Run all 133+ JVM unit tests
 ./gradlew --no-daemon :core:test
-
-# Verify Debug and R8-minified Release APK builds
 ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
 ```
 
-## License
-
-By contributing to HearthLog, you agree that your contributions will be licensed under the [GNU General Public License v3.0](LICENSE).
+Contributions are licensed under the [GNU General Public License v3.0](LICENSE).

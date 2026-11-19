@@ -15,8 +15,8 @@ android {
         applicationId = "io.github.hearthlog.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 1
-        versionName = providers.gradleProperty("versionName").orNull ?: "1.0.0"
+        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 2
+        versionName = providers.gradleProperty("versionName").orNull ?: "1.0.1"
         manifestPlaceholders["appLabel"] = "@string/app_name"
 
         val requestedAbis = providers.gradleProperty("abis").orNull?.split(",")?.map(String::trim)?.filter(String::isNotEmpty)

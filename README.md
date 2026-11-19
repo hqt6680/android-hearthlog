@@ -7,68 +7,57 @@
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-**HearthLog** is a lightweight, open-source Android constructed deck tracker, dual-overlay match assistant, and meta explorer for *Hearthstone*, written in 100% Kotlin with Jetpack Compose.
+**HearthLog** is an open-source *Hearthstone* deck tracker and match assistant for Android, written in Kotlin with Jetpack Compose. The release APK is around 2.5 MB.
 
-Instead of relying on continuous screen capture or heavy OCR models, HearthLog reads Hearthstone's structured `Power.log` and `Decks.log` streams on-device through user-authorized [Shizuku](https://shizuku.rikka.app/) IPC, delivering deterministic entity tracking, opponent hand & secret deduction, and real-time decision analysis in a ~2.4 MB release APK.
-
----
-
-## Highlights
-
-- **Deterministic `Power.log` Tracking**: Tracks friendly and opponent hand counts, hand card origins (opening, drawn, returned, generated with creator tracking), remaining deck cards, board combat totals, active weapons, and graveyard minions directly from game state events.
-- **Dual Split Floating Overlays**: Independent left and right floating panels that snap to screen curtains clear of display cutouts, collapse into compact bubbles, and present play advice/graveyard on the left and live deck/opponent hand tracking on the right.
-- **Pure-Kotlin Constructed Decision Engine**: Reconstructs complete match state snapshots (`NeteasePowerLogStateTracker`) and queries constructed mulligan, discover, action, and live win-rate predictions (`NeteaseDirectPredictor`) plus aggregate opening keep-rate statistics (`NeteaseOpeningStats`) natively on the JVM without native `.NET` bridges or external helper apps.
-- **Offline Log Replay & Audit**: Replay any saved `Power.log` at a specific turn and options packet ID to inspect state reconstruction and decision recommendations deterministically.
-- **Automatic Deck Sync & Meta Explorer**: Syncs constructed decks directly from `Decks.log`, supports deck code import/export (including E.T.C. and Zilliax sideboards), calculates collection crafting dust costs, and browses Standard & Wild meta snapshots (China server & HSReplay).
-- **One-Tap `log.config` Provisioning**: Enables `[Power]` and `[Decks]` logging safely via Shizuku using TOCTOU-checked `SecureDirectoryStream` file operations.
+Instead of burning battery on screen capture and OCR, HearthLog reads Hearthstone's own `Power.log` and `Decks.log` on-device via [Shizuku](https://shizuku.rikka.app/). Everything from entity tracking and secret elimination to constructed decision analysis runs directly in pure Kotlin—no native `.NET` bridges or companion PC apps needed.
 
 ---
 
-## Architecture
+## What It Does
 
-HearthLog is split into two Gradle modules with strict dependency boundaries:
-
-| Module | Target | Responsibility |
-| --- | --- | --- |
-| **`:core`** | Pure Kotlin / JVM 17 | Zero Android dependencies. Houses the `PowerLogTracker` state reducer, `PowerLogDecisionGate`, `PowerLogSecretCandidates` solver, `NeteasePowerLogStateTracker` entity/zone/attachment/deck-counter serializer, `NeteaseDirectPredictor` & `NeteaseDirectCodec`, deck code codec, and meta repositories. Covered by **26 test suites / 133 JUnit & MockWebServer unit tests**. |
-| **`:app`** | Android SDK 26–35 | Jetpack Compose Material 3 UI, `WindowManager` dual floating overlay service (`OverlayService`, `OverlayWindow`), AIDL-isolated Shizuku user service (`PowerLogReaderService`, `ShizukuLogSource`), and local JSON data stores. |
+- **Split Floating Overlays**: Two draggable edge-snapping panels that collapse into small bubbles when you don't need them. The left panel shows mulligan/discover/play advice, win-rate estimates, and graveyards; the right panel tracks your remaining deck, opponent hand turns & card origins, secret candidates, and board/hero combat totals.
+- **Deck Sync & Management**: Picks up your queued deck automatically from `Decks.log`, supports deck codes (including E.T.C. and Zilliax sideboards), mana curves, and crafting dust costs.
+- **Meta Browser**: Browse Standard and Wild meta snapshots from both the China server and HSReplay.
+- **Offline Log Replay**: Drop in a saved `Power.log`, pick a turn and options packet ID, and step through how the tracker reconstructed the board and predictions.
+- **One-Tap Log Setup**: Writes `[Power]` and `[Decks]` into Hearthstone's `log.config` via Shizuku so you don't have to hunt down folders manually.
 
 ---
 
-## Prerequisites & Setup
+## Project Layout
 
-1. **Android 8.0 (API 26)** or newer.
-2. **[Shizuku](https://shizuku.rikka.app/guide/setup/)** running (on Android 11+, start Shizuku directly on-device via *Developer options → Wireless debugging*).
-3. **Enable Hearthstone Match Logs**:
-   - Open HearthLog → **Tracker** tab → authorize Shizuku → tap **Enable Hearthstone logs** (or manually add `[Power]` and `[Decks]` sections to Hearthstone's `log.config`).
-   - Fully close and reopen Hearthstone before starting a Standard or Wild match.
-4. **Overlay Permission**:
-   - Grant *Display over other apps* when prompted. *(Note: On Android 13–15+ with sideloaded APKs, open system **Settings → Apps → HearthLog → top-right menu `⋮` → Allow restricted settings** first if the toggle is greyed out.)*
+- **`:core` (Pure Kotlin / JVM 17)**: Zero Android dependencies. Contains the `Power.log` / `Decks.log` parsers, match state tracker, secret candidate filter, deck code codec, meta clients, and prediction engine, backed by 136 unit tests (`./gradlew :core:test`).
+- **`:app` (Android Jetpack Compose)**: Material 3 UI, dual `WindowManager` overlays, and the Shizuku `UserService` (`PowerLogReaderService`) that tails logs across processes.
+
+---
+
+## Getting Started
+
+1. **Android 8.0 (API 26)** or higher.
+2. Install and start **[Shizuku](https://shizuku.rikka.app/guide/setup/)** (on Android 11+, you can start it right on the device via *Developer options → Wireless debugging*).
+3. Open HearthLog → **Tracker** → authorize Shizuku → tap **Enable Hearthstone logs** (or add `[Power]` and `[Decks]` to Hearthstone's `log.config` manually).
+4. **Force-close and reopen Hearthstone** so it picks up the new `log.config`.
+5. Grant **Display over other apps** when prompted.
+   - *Tip for Android 13+*: If the overlay toggle is greyed out after sideloading the APK, go to **Settings → Apps → HearthLog → top-right `⋮` → Allow restricted settings** first.
+   - *Note on Hearthstone's 10 MB log cap*: Hearthstone on Android stops writing to `Power.log` once a single session file hits `10000KB` (usually after 4–5 long games). If HearthLog tells you the log was truncated, just restart Hearthstone to start a fresh log file.
 
 ---
 
 ## Building & Testing
 
-Requires **JDK 17 or 21** and **Android SDK 35**.
+Requires **JDK 17 or 21** and **Android SDK 35**:
 
 ```bash
-# Run the full JVM unit & MockWebServer test suite (:core)
+# Run the JVM unit tests
 ./gradlew :core:test
 
-# Assemble Debug and R8-minified Release APKs (:app)
+# Build Debug / Release APKs
 ./gradlew :app:assembleDebug
 ./gradlew :app:assembleRelease
 ```
 
 ---
 
-## Project Governance
+## Docs & Credits
 
-- [Privacy Policy](PRIVACY.md)
-- [Security Policy](SECURITY.md)
-- [Contributing Guide](CONTRIBUTING.md)
-- [License (GNU GPL v3.0)](LICENSE)
-
-## Attribution & Disclaimer
-
-HearthLog builds upon the open-source foundation of `hs-deck-tracker-android` under the [GNU General Public License v3.0](LICENSE). Card metadata is provided by [HearthstoneJSON](https://hearthstonejson.com/). HearthLog is an independent community open-source project and is not affiliated with or endorsed by Blizzard Entertainment or NetEase.
+- [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [GPL-3.0 License](LICENSE)
+- Built upon the open-source `hs-deck-tracker-android` codebase under GPL-3.0. Card data comes from [HearthstoneJSON](https://hearthstonejson.com/). HearthLog is an independent community project and is not affiliated with Blizzard Entertainment or NetEase.
