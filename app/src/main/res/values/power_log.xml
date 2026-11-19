@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="power_log_notification">Tracking the Hearthstone match log</string>
+    <string name="power_log_start">Log tracking</string>
+    <string name="power_log_authorize">Authorize Shizuku</string>
+    <string name="power_log_shizuku_off">Install and start Shizuku with wireless debugging to enable log tracking.</string>
+    <string name="power_log_shell_required">Start Shizuku with Android debugging.</string>
+    <string name="power_log_permission">Allow Shizuku to read the Hearthstone match log.</string>
+    <string name="power_log_connecting">Connecting to Shizuku</string>
+    <string name="power_log_ready">Turn on match logging in Hearthstone, start this tracker, then launch a new Standard or Wild match.</string>
+    <string name="power_log_setup_ready">Enable game logging here, then start tracking and launch a new Standard or Wild match.</string>
+    <string name="power_log_setup_enable">Enable Hearthstone logs</string>
+    <string name="power_log_setup_in_progress">Enabling logs…</string>
+    <string name="power_log_setup_updated">Power and Decks logs enabled. Fully exit and reopen Hearthstone before the next match.</string>
+    <string name="power_log_setup_already_enabled">Power and Decks logs are already enabled.</string>
+    <string name="power_log_setup_game_files_missing">Game files were not found. Open Hearthstone once and try again.</string>
+    <string name="power_log_setup_failed">Unable to enable game logging. Check that Shizuku is running and authorized.</string>
+    <string name="power_log_no_file">Waiting for Power.log. Enable game logging and restart the Hearthstone client.</string>
+    <string name="play_and_track_with_log">Open Hearthstone with log tracking</string>
+    <string name="play_and_track_with_capture">Open Hearthstone with screen recognition</string>
+    <string name="stop_capture_for_log">Stop screen recognition before starting log tracking.</string>
+    <string name="power_log_waiting_match">Waiting for the next Standard or Wild match</string>
+    <string name="power_log_read_error">The game log could not be read. Check Shizuku and the Hearthstone log location.</string>
+    <string name="power_log_us">Player</string>
+    <string name="power_log_opponent">Opponent</string>
+    <string name="power_log_player_a">Player A</string>
+    <string name="power_log_player_b">Player B</string>
+    <string name="power_log_turn">Turn %1$d</string>
+    <string name="power_log_hand">Hand</string>
+    <string name="power_log_graveyard">Graveyard</string>
+    <string name="power_log_board">Board</string>
+    <string name="power_log_known_secrets">Known secrets</string>
+    <string name="power_log_public_plays">Visible plays</string>
+    <string name="power_log_counts">Hand %1$d · Deck %2$s · Secret zone %3$d</string>
+    <string name="power_log_attack">Minion attack total %1$d</string>
+    <string name="power_log_attack_short">ATK %1$d</string>
+    <string name="power_log_health">Hero health and armor %1$d</string>
+    <string name="power_log_board_pressure">Board pressure</string>
+    <string name="power_log_defense_pressure">The opposing minions have enough total attack to cover your current health and armor.</string>
+    <string name="power_log_offense_pressure">Your minions have enough total attack to cover the opponent’s health and armor. Check which minions can attack and any opposing Taunts.</string>
+    <string name="power_log_local_unknown">Waiting to identify your side</string>
+</resources>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_prediction">AI predictions</string>
+    <string name="device_prediction_enabled">NetEase predictions enabled</string>
+    <string name="device_prediction_running">Requesting NetEase prediction</string>
+    <string name="device_prediction_timeout">NetEase prediction timed out.</string>
+    <string name="device_prediction_unavailable">NetEase prediction is temporarily unavailable.</string>
+    <string name="device_prediction_failure">No prediction returned for this position.</string>
+    <string name="cloud_replay">Replay a constructed log</string>
+    <string name="cloud_replay_deck">Select the deck used in this log</string>
+    <string name="cloud_replay_deck_empty">Import the deck used in this match from My Decks.</string>
+    <string name="cloud_replay_turn">Log turn (optional)</string>
+    <string name="cloud_replay_options">Options packet (optional)</string>
+    <string name="cloud_replay_open">Choose Power.log</string>
+    <string name="cloud_replay_instructions">Enter a turn and an options packet to replay that decision. Leave them blank for the latest reconstructable constructed decision.</string>
+    <string name="cloud_need_deck">Select the complete deck used in this match to predict</string>
+    <string name="cloud_waiting_decision">Waiting for a predictable position.</string>
+    <string name="cloud_refreshing_win_rate">Updating win rate…</string>
+    <string name="cloud_choice_tab">Discover</string>
+    <string name="cloud_replace_action">Replace</string>
+    <string name="cloud_keep_all_action">Keep every card</string>
+    <string name="cloud_no_decision">No supported constructed decision was found, or the deck format does not match.</string>
+    <string name="cloud_log_large">This match log is too large to predict.</string>
+    <string name="cloud_turn_options">Log turn %1$d · packet %2$d</string>
+    <string name="cloud_win_rate">Win rate %1$s</string>
+    <string name="cloud_no_recommendation">No recommendation for this position</string>
+    <string name="cloud_position">Position %1$d</string>
+    <string name="cloud_target">Target %1$s</string>
+    <string name="cloud_entity">Entity %1$s</string>
+    <string name="cloud_play_action">Play</string>
+    <string name="cloud_coin_card">The Coin</string>
+    <string name="cloud_attack_action">%1$s attacks %2$s</string>
+    <string name="cloud_friendly_board_position">Our #%1$d</string>
+    <string name="cloud_enemy_board_position">Enemy #%1$d</string>
+    <string name="cloud_friendly_hero">Our hero</string>
+    <string name="cloud_enemy_hero">Enemy hero</string>
+    <string name="cloud_friendly_minion">Our minion</string>
+    <string name="cloud_enemy_minion">Enemy minion</string>
+    <string name="cloud_enemy_target">Enemy target</string>
+    <string name="cloud_end_action">End turn</string>
+    <string name="cloud_power_action">Use hero power</string>
+    <string name="cloud_location_action">Use location</string>
+    <string name="cloud_trade_action">Trade</string>
+    <string name="cloud_choice_action">Choose</string>
+</resources>

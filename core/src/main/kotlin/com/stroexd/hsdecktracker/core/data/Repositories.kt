@@ -1,0 +1,204 @@
+package com.stroexd.hsdecktracker.core.data
+
+import com.stroexd.hsdecktracker.core.cards.CardDatabase
+import com.stroexd.hsdecktracker.core.cards.FormatRules
+import com.stroexd.hsdecktracker.core.cards.GameFormat
+import com.stroexd.hsdecktracker.core.cards.HsClass
+import com.stroexd.hsdecktracker.core.collection.CardCollection
+import com.stroexd.hsdecktracker.core.collection.CollectionChange
+import com.stroexd.hsdecktracker.core.collection.CollectionImportResult
+import com.stroexd.hsdecktracker.core.collection.OwnedCard
+import com.stroexd.hsdecktracker.core.collection.withScannedCopies
+import com.stroexd.hsdecktracker.core.deck.Deck
+import com.stroexd.hsdecktracker.core.deck.DeckTextParser
+import com.stroexd.hsdecktracker.core.stats.MatchRecord
+import com.stroexd.hsdecktracker.core.util.PrettyJson
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import java.io.File
+
+class DeckRepository(dir: File, private val clock: () -> Long = System::currentTimeMillis) {
+    private val store = JsonFileStore(File(dir, "decks.json"), ListSerializer(Deck.serializer()), emptyList())
+
+    val decks: StateFlow<List<Deck>> = store.state
+
+    fun get(id: String): Deck? = store.value.firstOrNull { it.id == id }
+
+    suspend fun upsert(deck: Deck): Deck {
+        val now = clock()
+        val saved = deck.copy(updatedAt = now, createdAt = if (deck.createdAt == 0L) now else deck.createdAt)
+        store.update { list ->
+            if (list.any { it.id == saved.id }) list.map { if (it.id == saved.id) saved else it } else list + saved
+        }
+        return saved
+    }
+
+    suspend fun syncGameDecks(incoming: List<Deck>) {
+        if (incoming.isEmpty()) return
+        store.update { existing ->
+            val byId = existing.associateByTo(linkedMapOf()) { it.id }
+            for (deck in incoming) {
+                val previous = byId[deck.id]
+                if (previous != null) {
+                    val updated = deck.copy(
+                        heroClass = deck.heroClass.takeIf { it.isPlayable } ?: previous.heroClass,
+                        notes = previous.notes, favorite = previous.favorite,
+                        createdAt = previous.createdAt, updatedAt = previous.updatedAt,
+                    )
+                    if (updated != previous) byId[deck.id] = updated.copy(updatedAt = clock())
+                } else if (byId.values.none { it.name == deck.name && it.toDefinition() == deck.toDefinition() }) {
+                    byId[deck.id] = deck
+                }
+            }
+            byId.values.toList()
+        }
+    }
+
+    suspend fun delete(id: String) {
+        store.update { list -> list.filterNot { it.id == id } }
+    }
+
+    suspend fun importFromText(
+        text: String,
+        db: CardDatabase,
+        defaultName: (HsClass) -> String = { "${it.englishName} Deck" },
+        allowedFormats: Set<GameFormat> = GameFormat.entries.toSet(),
+    ): List<Deck> {
+        val now = clock()
+        val decks = DeckTextParser.parseAll(text)
+            .filter { it.definition.format in allowedFormats }
+            .map { parsed -> Deck.fromDefinition(parsed.definition, parsed.name, db, now, defaultName = defaultName) }
+        if (decks.isNotEmpty()) store.update { it + decks }
+        return decks
+    }
+
+    suspend fun replaceAll(decks: List<Deck>) {
+        store.set(decks)
+    }
+}
+
+/** The entries before a change (null: not owned) and the dust it added. */
+data class CollectionUndo(val cards: Map<Int, OwnedCard?>, val dust: Int)
+
+class CollectionRepository(dir: File, private val clock: () -> Long = System::currentTimeMillis) {
+    private val store = JsonFileStore(File(dir, "collection.json"), CardCollection.serializer(), CardCollection())
+
+    val collection: StateFlow<CardCollection> = store.state
+
+    suspend fun applyImport(result: CollectionImportResult, keepDustIfMissing: Boolean = true) {
+        store.update { current ->
+            result.collection.copy(
+                dust = if (result.dust == null && keepDustIfMissing) current.dust else result.collection.dust,
+                updatedAt = clock(),
+            )
+        }
+    }
+
+    suspend fun setNormalCount(dbfId: Int, count: Int) {
+        store.update { it.withNormalCount(dbfId, count).copy(updatedAt = clock()) }
+    }
+
+    suspend fun setNormalCounts(counts: Map<Int, Int>) {
+        store.update { current ->
+            counts.entries.fold(current) { acc, (id, count) -> acc.withNormalCount(id, count) }.copy(updatedAt = clock())
+        }
+    }
+
+    /** Applies a change computed from the current collection and returns what it takes to undo it. */
+    suspend fun apply(compute: (CardCollection) -> CollectionChange): Pair<CollectionChange, CollectionUndo> {
+        lateinit var result: Pair<CollectionChange, CollectionUndo>
+        store.update { current ->
+            val change = compute(current)
+            val ids = change.cards.mapTo(HashSet()) { it.dbfId }
+            result = change to CollectionUndo(ids.associateWith { current.cards[it] }, change.collection.dust - current.dust)
+            change.collection.copy(updatedAt = clock())
+        }
+        return result
+    }
+
+    suspend fun undo(undo: CollectionUndo) {
+        store.update { current ->
+            val cards = current.cards.toMutableMap()
+            undo.cards.forEach { (id, owned) -> if (owned == null) cards -= id else cards[id] = owned }
+            current.copy(cards = cards, dust = (current.dust - undo.dust).coerceAtLeast(0), updatedAt = clock())
+        }
+    }
+
+    /** Returns how many cards changed. */
+    suspend fun applyScan(totals: Map<List<Int>, Int>, db: CardDatabase, rules: FormatRules): Int {
+        var changed = 0
+        store.update { current ->
+            val next = current.withScannedCopies(totals, db, rules)
+            changed = (current.cards.keys + next.cards.keys).count { current.owned(it) != next.owned(it) }
+            next.copy(updatedAt = clock(), source = "Hearthstone")
+        }
+        return changed
+    }
+
+    suspend fun setDust(dust: Int) {
+        store.update { it.copy(dust = dust.coerceAtLeast(0)) }
+    }
+
+    suspend fun addDeck(cards: Map<Int, Int>) {
+        store.update { current ->
+            cards.entries.fold(current) { acc, (id, count) -> acc.ensureAtLeast(id, count) }.copy(updatedAt = clock())
+        }
+    }
+
+    suspend fun replace(collection: CardCollection) {
+        store.set(collection)
+    }
+
+    suspend fun clear() {
+        store.update { CardCollection(dust = it.dust) }
+    }
+}
+
+class MatchRepository(dir: File) {
+    private val store = JsonFileStore(File(dir, "matches.json"), ListSerializer(MatchRecord.serializer()), emptyList())
+
+    val matches: StateFlow<List<MatchRecord>> = store.state
+
+    suspend fun add(record: MatchRecord) {
+        store.update { it + record }
+    }
+
+    suspend fun delete(id: String) {
+        store.update { list -> list.filterNot { it.id == id } }
+    }
+
+    suspend fun update(record: MatchRecord) {
+        store.update { list -> list.map { if (it.id == record.id) record else it } }
+    }
+
+    suspend fun replaceAll(matches: List<MatchRecord>) {
+        store.set(matches)
+    }
+}
+
+class SettingsRepository(dir: File) {
+    private val store = JsonFileStore(File(dir, "settings.json"), AppSettings.serializer(), AppSettings())
+
+    val settings: StateFlow<AppSettings> = store.state
+    val value: AppSettings get() = store.value
+
+    suspend fun update(transform: (AppSettings) -> AppSettings) {
+        store.update(transform)
+    }
+}
+
+@Serializable
+data class BackupData(
+    val version: Int = 1,
+    val exportedAt: Long = 0,
+    val decks: List<Deck> = emptyList(),
+    val collection: CardCollection = CardCollection(),
+    val matches: List<MatchRecord> = emptyList(),
+    val settings: AppSettings = AppSettings(),
+)
+
+object Backup {
+    fun export(data: BackupData): String = PrettyJson.encodeToString(BackupData.serializer(), data)
+    fun import(json: String): BackupData = PrettyJson.decodeFromString(BackupData.serializer(), json)
+}

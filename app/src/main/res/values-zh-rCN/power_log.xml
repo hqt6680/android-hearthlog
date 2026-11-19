@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="power_log_notification">正在读取炉石构筑对局日志</string>
+    <string name="power_log_start">日志记牌</string>
+    <string name="power_log_authorize">授权 Shizuku</string>
+    <string name="power_log_shizuku_off">请安装 Shizuku，并通过无线调试启动。</string>
+    <string name="power_log_shell_required">请通过 Android 调试启动 Shizuku。</string>
+    <string name="power_log_permission">授权盒子通过 Shizuku 读取对局日志。</string>
+    <string name="power_log_connecting">正在连接 Shizuku</string>
+    <string name="power_log_ready">开启炉石日志并启动记牌，从桌面直接打开炉石，进入下一场标准或狂野。</string>
+    <string name="power_log_setup_ready">可在这里开启炉石日志，然后启动记牌并开始下一场标准或狂野。</string>
+    <string name="power_log_setup_enable">开启炉石日志</string>
+    <string name="power_log_setup_in_progress">正在开启日志…</string>
+    <string name="power_log_setup_updated">已开启 Power 和 Decks 日志。请彻底退出炉石，再重新打开。</string>
+    <string name="power_log_setup_already_enabled">Power 和 Decks 日志已开启。</string>
+    <string name="power_log_setup_game_files_missing">未找到炉石游戏目录。请先打开一次炉石，再重试。</string>
+    <string name="power_log_setup_failed">无法开启炉石日志。请检查 Shizuku 是否已启动并授权。</string>
+    <string name="power_log_no_file">等待 Power.log。启用游戏日志后，请彻底退出并重新打开普通炉石客户端。</string>
+    <string name="play_and_track_with_log">开启日志记牌并打开炉石</string>
+    <string name="play_and_track_with_capture">开启屏幕识别并打开炉石</string>
+    <string name="stop_capture_for_log">请先停止屏幕识别，再开启日志记牌。</string>
+    <string name="power_log_waiting_match">等待下一场标准或狂野构筑</string>
+    <string name="power_log_read_error">未能读取对局日志。请检查 Shizuku 和炉石日志目录。</string>
+    <string name="power_log_us">我方</string>
+    <string name="power_log_opponent">对手</string>
+    <string name="power_log_player_a">玩家 A</string>
+    <string name="power_log_player_b">玩家 B</string>
+    <string name="power_log_turn">第 %1$d 回合</string>
+    <string name="power_log_hand">手牌</string>
+    <string name="power_log_graveyard">坟场</string>
+    <string name="power_log_board">场面</string>
+    <string name="power_log_known_secrets">已知奥秘</string>
+    <string name="power_log_public_plays">公开出牌</string>
+    <string name="power_log_counts">手牌 %1$d · 牌库 %2$s · 奥秘区 %3$d</string>
+    <string name="power_log_attack">随从攻击合计 %1$d</string>
+    <string name="power_log_attack_short">攻击 %1$d</string>
+    <string name="power_log_health">英雄血量加护甲 %1$d</string>
+    <string name="power_log_board_pressure">局势提示</string>
+    <string name="power_log_defense_pressure">对手随从攻击合计已达到我方血量与护甲之和。</string>
+    <string name="power_log_offense_pressure">我方随从攻击合计已达到对手血量与护甲之和，可核对哪些随从能攻击以及敌方嘲讽。</string>
+    <string name="power_log_local_unknown">等待识别我方归属</string>
+</resources>

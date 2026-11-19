@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="device_prediction">AI 预测</string>
+    <string name="device_prediction_enabled">网易预测已启用</string>
+    <string name="device_prediction_running">正在请求网易预测</string>
+    <string name="device_prediction_timeout">网易预测请求超时</string>
+    <string name="device_prediction_unavailable">暂时无法获取网易预测</string>
+    <string name="device_prediction_failure">本次局面未取得预测结果</string>
+    <string name="cloud_replay">回放构筑日志</string>
+    <string name="cloud_replay_deck">选择日志对应的套牌</string>
+    <string name="cloud_replay_deck_empty">请先在「我的套牌」导入当局套牌。</string>
+    <string name="cloud_replay_turn">日志回合号（可选）</string>
+    <string name="cloud_replay_options">选项包编号（可选）</string>
+    <string name="cloud_replay_open">选择 Power.log</string>
+    <string name="cloud_replay_instructions">按指定的回合和选项包验证预测。留空时读取日志中最后一个可重建的构筑决策。</string>
+    <string name="cloud_need_deck">选择本局完整套牌后开始预测</string>
+    <string name="cloud_waiting_decision">等待可预测局面</string>
+    <string name="cloud_refreshing_win_rate">胜率更新中…</string>
+    <string name="cloud_choice_tab">发现</string>
+    <string name="cloud_replace_action">换掉</string>
+    <string name="cloud_keep_all_action">保留全部起手牌</string>
+    <string name="cloud_no_decision">日志中没有可用的构筑决策，或所选套牌赛制不符</string>
+    <string name="cloud_log_large">本局日志过大，无法预测</string>
+    <string name="cloud_turn_options">日志回合 %1$d · 选项包 %2$d</string>
+    <string name="cloud_win_rate">胜率 %1$s</string>
+    <string name="cloud_no_recommendation">当前局面暂无推荐</string>
+    <string name="cloud_position">落位 %1$d</string>
+    <string name="cloud_target">目标 %1$s</string>
+    <string name="cloud_entity">实体 %1$s</string>
+    <string name="cloud_play_action">打出</string>
+    <string name="cloud_coin_card">幸运币</string>
+    <string name="cloud_attack_action">%1$s 攻击 %2$s</string>
+    <string name="cloud_friendly_board_position">我方%1$d号</string>
+    <string name="cloud_enemy_board_position">敌方%1$d号</string>
+    <string name="cloud_friendly_hero">我方英雄</string>
+    <string name="cloud_enemy_hero">敌方英雄</string>
+    <string name="cloud_friendly_minion">我方随从</string>
+    <string name="cloud_enemy_minion">敌方随从</string>
+    <string name="cloud_enemy_target">敌方目标</string>
+    <string name="cloud_end_action">结束回合</string>
+    <string name="cloud_power_action">使用英雄技能</string>
+    <string name="cloud_location_action">使用地标</string>
+    <string name="cloud_trade_action">交易</string>
+    <string name="cloud_choice_action">选择</string>
+</resources>
